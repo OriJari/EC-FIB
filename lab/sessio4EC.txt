@@ -1,0 +1,90 @@
+Oriol Martí Jariod i Raul Plesa
+
+EC Pràctica Sessió 4: Coma flotant
+
+
+4.1 Funció descompon
+
+descompon:
+	slt $t0, $a0, $zero
+	sw $t0, 0($a1)			# *s=(cf<0)
+	
+	sll $a0, $a0, 1;		# cf << 1
+
+	bne $a0, $zero, else	# if
+	li $t0, 0				# exp = 0
+	b end_if
+	
+else:
+	li $t0, 18				# exp = 18
+	
+while:
+	bge $zero, $a0, end_while
+	sll $a0, $a0, 1			# cf <<= 1
+	addiu $t0, $t0, -1
+	b while
+	
+end_while:
+	sra $a0, $a0, 8			# cf
+	li $t1, 0x7FFFFF
+	and $a0, $a0, $t1
+	addiu $t0, $t0, 127		# exp += 127
+	
+end_if:
+	sw $t0, 0($a2)			# *e = exp
+	sw $a0, 0($a3)			# *m = cf
+	
+	jr $ra
+	
+	
+4.2 Funció compon
+
+compon:
+	sll $a0, $a0, 31
+	sll $a1, $a1, 23
+	
+	or $v0, $a0, $a1
+	or $v0, $v0, $a2
+	
+	mtc1 $v0, $f0			# return f
+	
+	jr $ra
+	
+	
+4.3 Codificació
+
+Decimal			cfixa			cflotant
+0.0				0x00000000		0x00000000
+-0.0			0x80000000		0x80000000
+12.75			0x0000CC00		0x414C0000
+
+	
+4.4 Preguntes
+1) Quina condició ha de complir el valor inicial de cfixa perquè es produeixi
+pèrdua de precisió en la conversió que proposa aquesta pràctica?
+
+Si la mantissa té més de 23 xifres significatives es perd precisió.
+
+2) Indica  un  valor  de cfixa  per  al  qual  es  produiria  pèrdua  de 
+ precisió  alconvertir-lo, i el corresponent valor en coma flotant
+ 
+cfixa = 	0x00C00001
+cflotant = 	0x45400001
+
+3) En  quina  sentència  concreta  del  programa  en  alt  nivell  es 
+ pot  produir  la pèrdua de precisió?
+ 
+En la alineació i eliminació del bit ocult
+( cf = (cf >> 8) & 0x7FFFFF; )
+
+4) Quin dels 4 modes d’arrodoniment que coneixes està portant a la pràctica
+aquest programa de conversió?
+
+El truncament
+
+5) Un número que estigui dins del rang del format de coma flotant pero que 
+estigui fora del rang del format de coma fixa. I quin és el menor numero potència 2
+que compleixi aquesta condició:
+
+2^22 es pot representar en coma flotan pero en fixa no,
+el menor que compleix la condició és 2^19.

@@ -1,0 +1,161 @@
+Raul Plesa i Oriol Martí Jariod
+
+EC Practica laboratori Sessio 5: Memoria Cache
+
+5.1
+En una memoria cache de 32 blocs de 4 paraules,
+referencia a memoria consistent en el word 0x1001014C
+
+1) Bloc de memoria principal?
+0x1001014_
+
+2) Index del bloc de memoria cache?
+0x14
+
+3) Etiqueta de la referencia?
+0x080080
+
+
+5.2
+1) Anàlisi del programa 5.1:
+
+Iteració	Adreça		Bloc MC		Miss/Hit
+1			0x10010000	0x00		Miss
+2			0x10010004	0x00		Hit
+3			0x10010008	0x00		Hit
+4			0x1001000C	0x00		Hit
+
+5			0x10010010	0x01		Miss
+6			0x10010014	0x01		Hit
+7			0x10010018	0x01		Hit
+8			0x1001001C	0x01		Hit
+
+9			0x10010020	0x02		Miss
+10			0x10010024	0x02		Hit
+
+2) Taxa d'encerts?
+3/4, o sigui 75%
+
+
+5.3
+1) Si dupliquem el nombre blocs canviarà la taxa d'encerts?
+No perquè el que afecta a la taxa d'encerts es el canvi d'un bloc a un altre.
+
+2) Si dupliquem els words per bloc canviarà?
+Ara si, perque com hem dit el que afecta es el canvi d'un bloc a un altre,
+per tant la taxa d'encerts pujarà a 7/8, 87.5%
+
+
+5.4
+Si executem el programa accedint al vector al reves canviara la taxa d'encerts?
+No, perque el primer acces del bloc seguira sent miss i els darrers hits.
+
+
+5.5
+Analisi del programa anterior:
+
+a) Nombre d'instruccions executades:
+3 + 1 + 705 + 2 = 711
+
+b) Temps d'execucio del programa amb CPIideal de 2:
+10 * (2·711 + 25·11) = 16.97 µs
+
+c) Temps d'execució sense cache i guany respecte a no tenir-la:
+
+10 * (2·711 + 100·5) = 19.22 µs
+Amb cache tenim un rendiment de 1,132x
+
+
+
+5.6
+Amb MC d'escriptura immediata amb assignacio, 32 blocs de 4 words, per al programa 5.2:
+
+1) Taula d'informacio de les iteracions:
+
+Iteracio 1				Iteracio 2				Iteracio 3				Iteracio 4
+vec[]	R/W		h/m		vec[]	R/W		h/m		vec[]	R/W		h/m		vec[]	R/W		h/m
+1		R		m		2		R		h		3		R		h		4		R		h
+0		R		h		1		R		h		2		R		h		3		R		h
+2		R		h		3		R		h		4		R		h		3		R		h
+0		R		h		2		R		h		3		R		h		4		R		h
+3		R		h		4		R		h		2		R		h		3		W		h
+2		R		h		2		R		h		3		R		h		4		W		h
+4		R		m		1		R		h		2		W		h
+2		R		h		2		R		h		3		W		h
+0		R		h		1		W		h
+2		R		h		2		W		h
+0		W		h
+2		W		h
+
+2) Nombre total d'accessos a la memoria i d'encerts en cada iteracion
+
+Iteracio 1				Iteracio 2				Iteracio 3				Iteracio 4
+
+Accessos	Encerts		Accessos	Encerts		Accessos	Encerts		Accessos	Encerts
+12		 	10			10			10			8			8			6			6
+
+3) Taxa d'encerts?
+34/36, 94%
+
+
+
+5.7
+Com canviaria la taxa d'encerts amb política d'escriptura immediata sense assignacio,
+i amb politica d'escriptura retardada amb assignacio?
+
+Per a les dues no canviaria perque després dels primers dos miss ja tindriem els dos blocs que necessitem.
+
+
+5.8
+Suposem que el vector te 64 elements:
+1) Quants miss es produirien considerant la mateixa geometria que a 5.6 ?
+Un a cada bloc, 64/4 = 16
+
+2) Quin nombre minim de blocs podem tenir sense que canvii la taxa d'encerts?
+16 * 4 = 64. 16 blocs de 4 words.
+
+
+5.9
+Considerant MC de correspondecia directa, aplica una politica d'escriptura immediata amb assignacio, de 16 blocs de 4 words.
+Quina es la taxa d'encerts?
+
+No hi ha cap encert, 0%
+
+5.10
+Canvia la declaració dels vectors perque la taxa d'encerts sigui 0.75
+
+.data
+A:	.space 512
+	.space 16
+B:	.space 512
+	.space 16
+C:	.space 512
+
+5.11
+Amb una MC completament associativa de 16 blocs de 4 words, quina taxa d'encerts tindriem?
+3 de 4, 75%
+
+5.12
+Considerant una MC amb blocs de 4 words, associativa amb 16 conjunts, quin ha de ser el grau minim de l'associativitat
+perque la taxa d'encerts sigui different de 0?
+
+Hauria d'haver minim un bloc per vector, o sigui grau 3.
+
+
+5.13
+Completa el codi del programa 5.4 optimizat amb tiling:
+
+main(){
+	int i, j, k, tmp;
+	
+	for (k=0; k<4; k++){
+		for (i=0; i<16; i++){
+			tmp = 0;
+			for (j=0; j<4; j++){
+				tmp+= M[i][4*k + j] * V2[4*k + j];
+			}
+			V1[i] += tmp;
+		}
+	}
+}
+

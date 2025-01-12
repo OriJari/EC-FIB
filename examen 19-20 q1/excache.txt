@@ -1,0 +1,26 @@
+####################################################################
+###### NOM I COGNOMS: 
+####################################################################
+
+a) Número de bloc de MP:
+
+b) Índex de MC:
+
+c) Encerts/Fallades primera iteració:
+
+d) Fallades per iteració del bucle extern:
+
+e) Taxa d'encerts:
+
+f) Hi ha alguna configuració millor:
+
+   En cas afirmatiu, quina configuració seria l'òptima?:
+
+   i quina taxa d'encerts tindria?:
+
+
+
+
+
+
+

@@ -1,0 +1,190 @@
+EC Pràctica Sessió 1
+Grup: Raul Plesa i Oriol Martí Jariod
+
+1.A
+1.1 [Traducció declaracions dades]
+
+	.data
+aa:	.byte -5
+bb:	.half -344
+cc:	.dword -3
+dd:	.byte 0xA0
+ee:	.word 5799
+ff:	.half -1
+
+1.2 [Estat memòria]
+
+Obviarem les posicions de la memòria on no hi hagi cap etiqueta i el contingut no hagi sigut modificat
+
+Etiqueta	@Memòria	Contingut
+aa			0x1001000	FB
+bb			0x1001002	A8
+			0x1001003	FE
+cc			0x1001008	FD
+			0x1001009	FF
+			0x100100A	FF
+			0x100100B	FF
+			0x100100C	FF
+			0x100100D	FF
+			0x100100E	FF
+			0x100100F	FF
+dd			0x1001010	A0
+ee			0x1001014	A7
+			0x1001015	16
+			0x1001016	00
+			0x1001017	00
+ff			0x1001018	FF
+			0x1001019	FF
+			
+1.B
+1.1 [Traducció macros]
+
+Macro MIPS			Instruccions MIPS
+
+la $s3, aa			lui $1, 4097
+					ori $19, $1, 0
+li $s4, 65535		ori $20, $0, 65535
+li $s5, 65536		lui $1, 1
+					ori $21, $1, 0
+move $s0, $s1		addu $16, 0, $17
+
+1.C
+1.3 [Accés memòria]
+
+Adreça efectiva		Núm bytes	Valor llegit/escrit
+d'accés a memòria	accedits
+
+0x10010000			1			0xFFFFFFFB
+0x10010002			2			0xFFFFFEA8
+0x10010008			8			0xFFFFFFFD
+0x10010010			1			0x100100A0
+0x10010018			2			0xFFFFFFFFn
+0x10010018			2			0x0000FFFB
+
+1.D
+1.4 [Punters]
+
+Instrucció en C		Valor retornat
+
+&pdada				0x10010004
+pdada				0x10010000
+*pdada				0x00000003
+&dada				0x10010000
+dada				0x00000003
+
+1.E
+1.5 [Programa accés punters]
+
+		.data
+A:		.word 3, 5, 7
+punter	.word 0
+		.text
+		.globl main
+		
+main:
+		la $t0, A
+		la $t1, punter
+		addiu $t0, $t0, 8
+		sw $t0, 0($t1)
+		
+		lw $s0, 0($t0)
+		addiu $s0, $s0, 2
+		
+		lw $t2, -8($t0)
+		addu $s0, $s0, $t2
+		
+		sw $s0, -4($t0)
+		
+		li $v0, 1
+		move $a0, $s0
+		syscall
+		
+		jr $ra
+		
+1.F
+1.6 [Vector]
+
+declaració vector:
+	.word 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+	
+Accés al vector:
+	@vec[i] = &vec + 4i
+	
+Copiar:
+	la $t0, vec
+	sll $t1, $s2, 2
+	add $t0, $t0, $t1
+	lw $s1, 0($t1)
+	
+1.G
+1.7 [Programa Fibonacci]
+
+		.data
+fib:	.space 40
+		.text
+		.globl main
+main:
+		li $s0, 2
+		la $t1, fib
+		li $t0, 1
+		sw $t0, 4($t1)
+		addi $t1, $t1, 8
+		
+while:
+		slti $t0, $s0, 10
+		beq $t0, $zero, fi
+		
+		lw $t2, -8($t1)
+		lw $t3, -4($t1)
+		add $t2, $t2, $t3
+		sw $t2, 0($t1)
+		addi $t1, $t1, 4
+		
+		addiu $s0, $s0, 1
+		b while
+		
+fi:
+		jr $ra
+		
+1.H
+1.8 [Programa strings]
+
+			.data
+cadena: .byte -1, -1, -1 ,-1 ,-1 ,-1
+vec:	.word 5, 6, 8 ,9 , 1
+		.text 
+		.globl main
+main:
+		li $s0 , 0 #i
+while:
+		la $t5, cadena
+		add $t5, $t5, $s0
+
+		li $t0, 5 
+		bge $s0, $t0, fi
+	
+		la $t1,vec
+		li $t2, 16
+		sll $t4, $s0, 2
+		sub $t3, $t2, $t4
+		add $t1, $t1, $t3
+		lw $t1, 0($t1)
+		addiu $t1, $t1, 48 
+		sb $t1, 0($t5)
+	
+		addiu $s0, $s0, 1
+		b while 
+	
+fi:
+		sb $zero, 0($t5)
+		la $a0, cadena
+		li $v0, 4
+		syscall
+		
+		jr $ra
+
+		
+Seqüència de caràcters de l'exercici al MARS:
+
+Adress		Value (+0)		Value (+4)		Value (+8)
+0x1001000	0x36383931		0x00000035		...
